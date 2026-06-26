@@ -17,6 +17,6 @@ jobs:
           script: |
             cd /home/ubuntu/bulkpurchasing
             git pull origin main
-            npm ci --omit=dev
+            npm ci
             npm run build
             pm2 restart bulkpurchasing --update-env
