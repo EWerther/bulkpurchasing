@@ -1,0 +1,375 @@
+================================================================================
+BULKPURCHASING — DB SCHEMA REFERENCE
+Generated: 2026-05-27  |  All 5 instances queried live
+================================================================================
+
+LEGEND
+  ✓  = code matches DB
+  ✗  = code is WRONG (bad column/table name)
+  ?  = column doesn't exist — needs your guidance on what to use instead
+  ~  = close but renamed
+
+================================================================================
+INSTANCE 1: FTX  (20.10.0.104,49750)   DB: LCData
+INSTANCE 2: SBYL (10.60.20.20,1439)    DB: LCData
+INSTANCE 3: TFM  (10.60.20.20,8080)    DB: LCData
+  → All three LCData instances have IDENTICAL schemas for the tables below.
+================================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: ITEM
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS (relevant subset):
+  ITEM_ID               int          NOT NULL
+  ITEM_Deleted          bit          NOT NULL          ← code had ITEM_Inactive ✗ (FIXED)
+  ITEM_SKUUS            nvarchar(50) NULLABLE          ← code had ITEM_SKU ✗ (FIXED)
+  ITEM_ProductName      nvarchar(250)NULLABLE          ✓
+  ITEM_PurchasingName   nvarchar(250)NULLABLE          ✓
+  ITEM_CTGY_ID          int          NOT NULL          ✓
+  ITEM_Status           nvarchar(50) NULLABLE
+  ITEM_Priority         int          NULLABLE
+  ITEM_PurchasingBlock  bit          NOT NULL
+  ITEM_IsVirtualProduct bit          NOT NULL
+  (90 total columns — only the ones the code uses are shown above)
+
+CODE REFERENCES vs ACTUAL:
+  ITEM_SKU       ✗ → ITEM_SKUUS       [FIXED]
+  ITEM_Inactive  ✗ → ITEM_Deleted     [FIXED]
+  ITEM_ID        ✓
+  ITEM_ProductName   ✓
+  ITEM_PurchasingName ✓
+  ITEM_CTGY_ID   ✓
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: CTGY
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  CTGY_ID       int           NOT NULL
+  CTGY_Deleted  bit           NOT NULL
+  CTGY_Category nvarchar(100) NOT NULL    ← ACTUAL name for category text
+  CTGY_Source   nvarchar(100) NULLABLE
+  (+ standard audit cols)
+
+CODE REFERENCES vs ACTUAL:
+  c.CTGY_Name   ✗ → CTGY_Category      [NOT YET FIXED]
+  c.CTGY_ID     ✓
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: ITPO  (PO Header)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS (relevant):
+  ITPO_ID                int          NOT NULL
+  ITPO_Deleted           bit          NOT NULL
+  ITPO_PONumber          nvarchar(50) NULLABLE    ← ACTUAL name for PO reference number
+  ITPO_Vendor            nvarchar(75) NULLABLE    (vendor name text)
+  ITPO_VNDR_ID           int          NULLABLE    ✓
+  ITPO_Received          bit          NOT NULL    ✓
+  ITPO_ReceivedDate      datetime     NULLABLE
+  ITPO_EstimatedArrival  datetime     NULLABLE    ✓
+  ITPO_DraftCompleted    bit          NOT NULL    ✓
+  ITPO_IsForecast        bit          NOT NULL
+  ITPO_DOC               int          NULLABLE
+  ITPO_Date              datetime     NULLABLE
+  ITPO_StockForecastEta  datetime     NULLABLE
+  (52 total columns)
+
+CODE REFERENCES vs ACTUAL:
+  po.ITPO_RefNum        ✗ → ITPO_PONumber        [NOT YET FIXED]
+  po.ITPO_ID            ✓
+  po.ITPO_VNDR_ID       ✓
+  po.ITPO_Received      ✓
+  po.ITPO_EstimatedArrival ✓
+  po.ITPO_DraftCompleted ✓
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: ITPI  (PO Line Items)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS (relevant):
+  ITPI_ID           int          NOT NULL
+  ITPI_Deleted      bit          NOT NULL
+  ITPI_ITPO_ID      int          NOT NULL    ✓
+  ITPI_ITEM_ID      int          NOT NULL    ← ACTUAL item FK column name
+  ITPI_Units        int          NOT NULL    ✓  (total units)
+  ITPI_QtyCases     int          NULLABLE    ✓  (number of cases)
+  ITPI_QtyPerCase   decimal      NULLABLE    ← ACTUAL units-per-case column
+  ITPI_IsPartialCase bit         NULLABLE
+  ITPI_CostPerUnit  money        NULLABLE
+  ITPI_Excluded     bit          NOT NULL
+  ITPI_UnitsReceived int         NULLABLE
+  ITPI_PurchasingName nvarchar(250) NULLABLE
+  ITPI_RunOutDate   datetime     NULLABLE
+  (26 total columns)
+
+CODE REFERENCES vs ACTUAL:
+  pi.ITPI_ItemId        ✗ → ITPI_ITEM_ID         [NOT YET FIXED]
+  pi.ITPI_UnitsPerCase  ✗ → ITPI_QtyPerCase       [NOT YET FIXED — caused current error]
+  pi.ITPI_ITPO_ID       ✓
+  pi.ITPI_ID            ✓
+  pi.ITPI_Units         ✓
+  pi.ITPI_QtyCases      ✓
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: tADSW  (Average Daily Sales — Weekly)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  ADSW_ID                int     NOT NULL
+  ADSW_Deleted           bit     NOT NULL
+  ADSW_WHSE_ID           int     NOT NULL    (warehouse)
+  ADSW_CHNL_ID           int     NOT NULL    (channel)
+  ADSW_ITEM_ID           int     NOT NULL    ✓
+  ADSW_AverageDailySales decimal NULLABLE    ✓
+  ADSW_SeasonalDailySales decimal NULLABLE
+  (+ standard audit cols)
+
+CODE REFERENCES vs ACTUAL:
+  a.ADSW_ITEM_ID           ✓
+  a.ADSW_AverageDailySales ✓
+  a.ADSW_Deleted           ✓
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: tVNIT  (Vendor-Item associations)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  VNIT_ID        int    NOT NULL    ← note: prefix is VNIT_, NOT tVNIT_
+  VNIT_Deleted   bit    NOT NULL
+  VNIT_VNDR_ID   int    NOT NULL
+  VNIT_ITEM_ID   int    NOT NULL
+  VNIT_Cost      money  NULLABLE
+  VNIT_IsDefault bit    NOT NULL
+  VNIT_PartNumber nvarchar(50) NULLABLE
+  VNIT_Minimum   int    NULLABLE    ← min order qty, NOT lead time
+
+  *** There is NO lead-time column on tVNIT ***
+  *** Lead time lives on tVNDR.VNDR_LeadTime ***
+
+CODE REFERENCES vs ACTUAL:
+  vi.tVNIT_ITEM_ID    ✗ → VNIT_ITEM_ID           [NOT YET FIXED]
+  vi.tVNIT_VNDR_ID    ✗ → VNIT_VNDR_ID           [NOT YET FIXED]
+  vi.tVNIT_LeadTime   ✗ → DOES NOT EXIST on tVNIT; use tVNDR.VNDR_LeadTime instead
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: tVNDR  (Vendors)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS (relevant):
+  VNDR_ID           int          NOT NULL    ← prefix is VNDR_, NOT tVNDR_
+  VNDR_Deleted      bit          NOT NULL
+  VNDR_Inactive     bit          NOT NULL
+  VNDR_Name         nvarchar(200)NULLABLE    ✓ (used as vendor name)
+  VNDR_LeadTime     int          NULLABLE    ← this is where lead time lives
+  VNDR_PreferredDOC int          NULLABLE
+  (35 total columns)
+
+CODE REFERENCES vs ACTUAL:
+  v.tVNDR_ID        ✗ → VNDR_ID              [NOT YET FIXED]
+  (No other tVNDR columns referenced in code currently)
+
+──────────────────────────────────────────────────────────────────────────────
+VIEW: WPCO_Inventory  (Warehouse pallet case on-hand totals)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  ITEM_ID         int     NOT NULL
+  TotalUnits      int     NULLABLE    ← all palletized units
+  InventoryUnits  int     NULLABLE    ← non-reserved units
+  TotalWeight     decimal NULLABLE
+  TotalPalletized int     NULLABLE
+  Reserved        int     NULLABLE
+
+CODE REFERENCES vs ACTUAL:
+  inv.ITEM_ID     ✓
+  inv.TotalUnits  ✓
+
+================================================================================
+INSTANCE 4: TFM (10.60.20.20,8080)  DB: CustomData
+================================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: DSSuppliesToProductsCovers  (Recipe: which supplies go into which product)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  Id           int     NOT NULL  (PK)
+  DateEntered  datetime NULLABLE
+  EnteredBy    int     NULLABLE
+  Product      int     NULLABLE    ← product item ID (FK to LCData.ITEM.ITEM_ID)
+  Supply       int     NULLABLE    ← supply item ID  (FK to LCData.ITEM.ITEM_ID)
+  Qty          decimal NOT NULL    ← quantity of supply needed per product unit
+
+CODE REFERENCES vs ACTUAL:
+  r.ProductItemId  ✗ → Product              [NOT YET FIXED]
+  r.SupplyItemId   ✗ → Supply               [NOT YET FIXED]
+  r.QtyPerUnit     ✗ → Qty                  [NOT YET FIXED]
+
+OTHER TABLES in CustomData (not used by app):
+  DashTopSellersCache, DeductInventoryLog, PickListDetail
+
+================================================================================
+INSTANCE 5: TFM (10.60.20.20,8080)  DB: CSGWebPortal
+================================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: WP_WHOD  (Wholesale Order Headers)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  WHOD_ID               int          NOT NULL    ← PK
+  WHOD_Deleted          bit          NOT NULL
+  WHOD_CSTR_ID          int          NULLABLE    ← FK to WP_CSTR (customer)
+  WHOD_Received         bit          NOT NULL
+  WHOD_ITPO_ID          int          NULLABLE    ← linked inbound PO
+  WHOD_OrderNumber      nvarchar     NULLABLE
+  WHOD_ReadyByDate      datetime     NULLABLE
+  WHOD_ReceivedDate     datetime     NULLABLE
+  WHOD_Completed        bit          NOT NULL
+  WHOD_Reference        nvarchar     NULLABLE
+  WHOD_DepositAmount    decimal      NULLABLE
+  WHOD_DepositReceived  bit          NOT NULL
+  WHOD_PaidDate         datetime     NULLABLE
+  WHOD_AmazonBookingNumber nvarchar  NULLABLE
+  (+ standard audit cols, 20 total)
+
+  *** NO "Company" column — company name comes from WP_CSTR.CSTR_Name via JOIN ***
+
+CODE REFERENCES vs ACTUAL:
+  h.wp_whod_id          ✗ → WHOD_ID              [NOT YET FIXED — wrong table prefix]
+  h.wp_whod_OrderNumber ✗ → WHOD_OrderNumber      [NOT YET FIXED]
+  h.wp_whod_Company     ✗ → DOES NOT EXIST; use CSTR_Name from WP_CSTR join
+  h.wp_whod_ReadyByDate ✗ → WHOD_ReadyByDate      [NOT YET FIXED]
+  h.wp_whod_Deleted     ✗ → WHOD_Deleted          [NOT YET FIXED]
+  h.wp_whod_Completed   ✗ → WHOD_Completed        [NOT YET FIXED]
+  h.wp_whod_Received    ✗ → WHOD_Received         [NOT YET FIXED]
+  h.wp_whod_cstr_ID     ✗ → WHOD_CSTR_ID          [NOT YET FIXED]
+  Table: wp_whod        ✗ → WP_WHOD               [NOT YET FIXED]
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: WP_WHOI  (Wholesale Order Line Items)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  WHOI_ID           int    NOT NULL    ← PK
+  WHOI_Deleted      bit    NOT NULL
+  WHOI_WHOD_ID      int    NULLABLE    ← FK to WP_WHOD
+  WHOI_ITEM_ID      int    NULLABLE    ← FK to ITEM (local or LCData)
+  WHOI_CostPerUnit  money  NULLABLE
+  WHOI_QtyCases     int    NULLABLE    ← number of cases ordered
+  WHOI_QtyPerCase   int    NULLABLE    ← units per case
+  WHOI_Received     bit    NOT NULL
+  WHOI_AmazonPoNumber nvarchar NULLABLE
+  (+ standard audit cols, 14 total)
+
+  *** NO ItemSKU column — SKU must come from ITEM join ***
+  *** NO Qty column — use WHOI_QtyCases * ISNULL(WHOI_QtyPerCase,1) ***
+  *** NO Status column — use WHOI_Received for received status ***
+
+CODE REFERENCES vs ACTUAL:
+  l.wp_whoi_whod_ID  ✗ → WHOI_WHOD_ID       [NOT YET FIXED]
+  l.wp_whoi_ItemSKU  ✗ → DOES NOT EXIST; JOIN to ITEM for ITEM_SKUUS
+  l.wp_whoi_ItemId   ✗ → WHOI_ITEM_ID       [NOT YET FIXED]
+  l.wp_whoi_Qty      ✗ → WHOI_QtyCases * ISNULL(WHOI_QtyPerCase,1)
+  l.wp_whoi_Status   ✗ → DOES NOT EXIST; derive from WHOI_Received
+  Table: wp_whoi     ✗ → WP_WHOI            [NOT YET FIXED]
+
+──────────────────────────────────────────────────────────────────────────────
+TABLE: WP_CSTR  (Customers)
+──────────────────────────────────────────────────────────────────────────────
+ACTUAL COLUMNS:
+  CSTR_ID      int          NOT NULL    ← PK
+  CSTR_Deleted bit          NOT NULL
+  CSTR_Name    nvarchar     NULLABLE    ← customer/company name
+  CSTR_Contact nvarchar     NULLABLE
+  CSTR_Address nvarchar     NULLABLE
+  CSTR_City    nvarchar     NULLABLE
+  CSTR_State   nvarchar     NULLABLE
+  CSTR_Country nvarchar     NULLABLE
+  CSTR_Phone   nvarchar     NULLABLE
+  CSTR_Email   nvarchar     NULLABLE
+  (20 total columns)
+
+CODE REFERENCES vs ACTUAL:
+  cstr.wp_cstr_id   ✗ → CSTR_ID             [NOT YET FIXED]
+  cstr.wp_cstr_Name ✗ → CSTR_Name           [NOT YET FIXED]
+  Table: wp_cstr    ✗ → WP_CSTR             [NOT YET FIXED]
+
+OTHER TABLES in CSGWebPortal (not currently used by app):
+  WP_USRS, WP_CMPY, WP_USCM, WP_FLAG, WP_ASGN, WP_NOTE, WP_CSIT
+  ITPO, ITPI, ITEM, VNDR, WHSE  (mirror tables or cross-refs)
+  INVC, INLI, INIT, INRL  (invoice tables)
+  WISH, WISI  (shipment tracking)
+  WORD, WORI  (warehouse orders)
+  WholesaleOrders, WholesaleOrders2  (views)
+
+================================================================================
+STORED PROCEDURES / FUNCTIONS IN LCData (FTX instance)
+================================================================================
+No BP_GetInventory or BP_GetADS procedures exist in any database.
+(Those have been replaced with inline queries in the app code.)
+
+Procs that exist in LCData@FTX:
+  CUST_WpcoListForInventoryLoaderFeed  (uses ITEM_SKUUS — confirms column name)
+  CUST_MCOI_ItemListWithProfit_CombinedWithDayBreakdown_PullLastLoaded
+  CUST_ProfitWithBreakdown
+  MCOI_Pivot_Combined
+  Various TVFs: AMRL_PricesBySku, AZOR_QtyByTime_SumByDay, ITEM_ProfitByDate*, etc.
+
+================================================================================
+SUMMARY OF ALL BUGS STILL TO FIX
+================================================================================
+
+FILE: lib/db/queries/ftx.ts + sbyl.ts
+  ITPI_ItemId       → ITPI_ITEM_ID
+  ITPI_UnitsPerCase → ITPI_QtyPerCase
+  ITPO_RefNum       → ITPO_PONumber
+  CTGY_Name         → CTGY_Category
+
+FILE: lib/db/queries/tfm.ts
+  CTGY_Name         → CTGY_Category
+  (getVendorLeadTimes)
+    vi.tVNIT_ITEM_ID  → vi.VNIT_ITEM_ID
+    vi.tVNIT_VNDR_ID  → vi.VNIT_VNDR_ID  (join condition)
+    v.tVNDR_ID        → v.VNDR_ID         (join condition)
+    vi.tVNIT_LeadTime → DOES NOT EXIST on tVNIT
+                        use v.VNDR_LeadTime (from tVNDR join)
+
+FILE: lib/db/queries/tfm-custom.ts  (DSSuppliesToProductsCovers)
+  r.ProductItemId   → Product
+  r.SupplyItemId    → Supply
+  r.QtyPerUnit      → Qty
+  WHERE clause also references i.ITEM_SKU — FIXED → ITEM_SKUUS
+  CTGY_Name         → CTGY_Category (in ignored-cats WHERE clause)
+
+FILE: lib/db/queries/csgportal.ts  (CSGWebPortal)
+  Table wp_whod     → WP_WHOD
+  Table wp_whoi     → WP_WHOI
+  Table wp_cstr     → WP_CSTR
+  h.wp_whod_id              → h.WHOD_ID
+  h.wp_whod_OrderNumber     → h.WHOD_OrderNumber
+  h.wp_whod_Company         → DOES NOT EXIST (drop — use only CSTR_Name)
+  h.wp_whod_ReadyByDate     → h.WHOD_ReadyByDate
+  h.wp_whod_Deleted         → h.WHOD_Deleted
+  h.wp_whod_Completed       → h.WHOD_Completed
+  h.wp_whod_Received        → h.WHOD_Received
+  h.wp_whod_cstr_ID         → h.WHOD_CSTR_ID
+  l.wp_whoi_whod_ID         → l.WHOI_WHOD_ID
+  l.wp_whoi_ItemSKU         → DOES NOT EXIST; use i.ITEM_SKUUS (already JOINing ITEM)
+  l.wp_whoi_ItemId          → l.WHOI_ITEM_ID
+  l.wp_whoi_Qty             → l.WHOI_QtyCases * ISNULL(l.WHOI_QtyPerCase,1)
+  l.wp_whoi_Status          → DOES NOT EXIST; need your guidance on what to use
+  cstr.wp_cstr_id           → cstr.CSTR_ID
+  cstr.wp_cstr_Name         → cstr.CSTR_Name
+  join condition on ITEM: l.wp_whoi_ItemId → l.WHOI_ITEM_ID
+
+WRITE ROUTES (ftx.ts + sbyl.ts) — INSERT statements also affected:
+  ITPI_ItemId       → ITPI_ITEM_ID   (in INSERT INTO ITPI)
+  ITPI_UnitsPerCase → ITPI_QtyPerCase (in INSERT INTO ITPI)
+  ITPI_Units is -1  → unclear if this is intentional; actual col is ITPI_Units (int)
+
+================================================================================
+QUESTION FOR YOU
+================================================================================
+1. For WP_WHOI line status: the code filters/displays based on wp_whoi_Status.
+   The actual table has no Status column. What should determine line status?
+   Options visible in schema: WHOI_Received (bit)
+
+2. For the production board "company" field: the code uses
+   ISNULL(cstr.wp_cstr_Name, h.wp_whod_Company) — there's no Company column
+   on WP_WHOD. Should it just be CSTR_Name, or is there another fallback?
+
+3. WP_WHOD.WHOD_ReadyByDate — is this the correct date field to use for
+   scheduling (the date the order needs to be ready to ship)?
+================================================================================

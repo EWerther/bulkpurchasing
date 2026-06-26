@@ -1,27 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg:             #f0f4f9;
+    --surface:        #ffffff;
+    --surface-raised: #ffffff;
+    --surface-hover:  #f4f7fb;
+    --border:         #dde3ed;
+    --border-light:   #c9d2e0;
+    --text-primary:   #0f172a;
+    --text-secondary: #475569;
+    --text-muted:     #94a3b8;
+    --accent:         #4f46e5;
+    --accent-dim:     rgba(79,70,229,0.08);
+    --accent-glow:    rgba(79,70,229,0.18);
+    --success:        #16a34a;
+    --warning:        #d97706;
+    --danger:         #dc2626;
+    --locked:         #64748b;
+  }
+
+  html { color-scheme: light; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: var(--border);
+    scrollbar-width: thin;
+    scrollbar-color: #c9d2e0 #f0f4f9;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #f0f4f9; }
+  ::-webkit-scrollbar-thumb { background: #c9d2e0; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: opacity(0.5);
+    cursor: pointer;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@layer components {
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* ── Typography ──────────────────────────────────────────── */
+  .font-mono-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    box-shadow: 0 1px 3px rgba(79,70,229,0.25), 0 0 0 1px rgba(79,70,229,0.2);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    box-shadow: 0 4px 12px rgba(79,70,229,0.35), 0 0 0 1px rgba(79,70,229,0.3);
+    transform: translateY(-0.5px);
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+           border transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+    background: var(--surface);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--accent);
+    background: var(--surface-hover);
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+           transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    color: var(--danger);
+    border: 1px solid rgba(220,38,38,0.25);
+    background: rgba(220,38,38,0.05);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: rgba(220,38,38,0.1);
+    border-color: rgba(220,38,38,0.4);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm
+           transition-all duration-150;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04);
+    /* overflow:clip clips content for border-radius like overflow:hidden,
+       but does NOT create a scroll container — so sticky thead headers
+       still work relative to the nearest true scroll ancestor. */
+    overflow: clip;
+  }
+
+  .card-glow {
+    @apply card;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04), 0 0 0 1px rgba(79,70,229,0.08);
+  }
+
+  /* ── Inputs ──────────────────────────────────────────────── */
+  .input {
+    @apply w-full text-sm rounded-lg px-3 py-2
+           border transition-all duration-150
+           focus:outline-none focus:ring-2;
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    background: var(--surface);
+    --tw-ring-color: rgba(79,70,229,0.15);
+  }
+  .input:focus {
+    border-color: var(--accent);
+  }
+
+  .filter-input {
+    @apply text-xs rounded-md px-2.5 py-1.5
+           border transition-all duration-150
+           focus:outline-none;
+    color: var(--text-primary);
+    border-color: var(--border);
+    background: var(--bg);
+    width: 100%;
+  }
+  .filter-input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+  .data-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .data-table thead th {
+    @apply sticky top-0 text-xs font-semibold uppercase tracking-wider
+           px-3 py-2.5 text-left border-b cursor-pointer select-none whitespace-nowrap z-10;
+    color: #475569;
+    border-color: #c7d2e0;
+    background: #dde6f0;
+    letter-spacing: 0.06em;
+  }
+
+  .data-table thead th:hover {
+    color: #1e293b;
+    background: #cfd8e8;
+  }
+
+  .data-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  .data-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(79,70,229,0.03);
+  }
+
+  .data-table tbody tr:nth-child(even) {
+    background: rgba(15,23,42,0.018);
+  }
+  .data-table tbody tr:nth-child(even):hover {
+    background: rgba(79,70,229,0.04);
+  }
+
+  .data-table tbody td {
+    @apply px-3 py-2;
+    color: var(--text-primary);
+  }
+
+  /* ── Table row heights ───────────────────────────────────── */
+  .table-row-comfortable td {
+    @apply py-2.5;
+  }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  .page-container {
+    @apply flex-1 overflow-auto p-5 space-y-5;
+  }
+
+  /* ── Labels / Section headers ────────────────────────────── */
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-widest mb-3;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Status Chips ────────────────────────────────────────── */
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* ── Stat numbers ────────────────────────────────────────── */
+  .stat-value {
+    @apply font-mono-num text-2xl font-semibold;
+    color: var(--text-primary);
+  }
+
+  .stat-label {
+    @apply text-xs font-medium uppercase tracking-wider;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Dividers ────────────────────────────────────────────── */
+  .divider {
+    @apply border-t my-4;
+    border-color: var(--border);
+  }
+
+  /* ── Progress/capacity bar ───────────────────────────────── */
+  .progress-track {
+    @apply w-full rounded-full overflow-hidden;
+    height: 6px;
+    background: rgba(79,70,229,0.1);
+  }
+
+  /* ── Tab bar ─────────────────────────────────────────────── */
+  .tab-bar {
+    @apply flex gap-1 px-4 pt-3 border-b;
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  .tab-item {
+    @apply px-4 py-2 text-xs font-semibold rounded-t-lg transition-all duration-150 cursor-pointer whitespace-nowrap;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .tab-item:hover {
+    color: var(--text-secondary);
+  }
+
+  .tab-item.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(79,70,229,0.04);
   }
 }
